@@ -201,11 +201,29 @@ public class WebViewActivity extends Activity {
     };
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (handleBackKey(mWebView)) {
-            return true;
-        } else {
-            return super.onKeyDown(keyCode, event);
+        if (keyCode == KeyEvent.KEYCODE_BACK) {//点击返回按钮的时候判断有没有上一页
+            if (mWebView != null && mWebView.canGoBack()) {
+                mWebView.goBack();
+                return true;
+            } else {
+                if (mBackKeyDown) {
+                    finish();
+                } else {
+                    mBackKeyDown = true;
+                    mHandler.postDelayed(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            mBackKeyDown = false;
+                        }
+                    }, 1000);
+                    ToastUtil.showMessage(this, "再次点击退出");
+                }
+
+                return true;
+            }
         }
+        return super.onKeyDown(keyCode, event);
     }
 //    @Override
 //    public boolean onKeyDown(int keyCode, KeyEvent event) {
