@@ -217,7 +217,7 @@ public class WebViewActivity extends Activity {
                             mBackKeyDown = false;
                         }
                     }, 1000);
-                    ToastUtil.showMessage(this, "再次点击退出");
+                    ToastUtil.showMessage(this.getApplicationContext(), "再次点击退出");
                 }
 
                 return true;
