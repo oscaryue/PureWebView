@@ -44,6 +44,8 @@ public class WebViewActivity extends Activity {
         requestPermission();
         initUI();
         loadUrl();
+
+        WeChatManager.getsInstance().register(this);
     }
 
     private boolean requestPermission() {
@@ -190,7 +192,6 @@ public class WebViewActivity extends Activity {
         @Override
         public void onReceivedTitle(WebView view, String title) {
             super.onReceivedTitle(view, title);
-            Log.i("ansen", "网页标题:" + title);
         }
 
         //加载进度回调
@@ -218,6 +219,9 @@ public class WebViewActivity extends Activity {
                         }
                     }, 1000);
                     ToastUtil.showMessage(this.getApplicationContext(), "再次点击退出");
+
+                    // oscar - test
+                    WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
                 }
 
                 return true;
