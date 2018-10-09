@@ -27,4 +27,14 @@ public class WebClientInterface {
     public void getDeviceID() {
         mHandler.sendEmptyMessage(0);
     }
+
+    @JavascriptInterface
+    public void shareUrl2Timeline(String url, String title, String description) {
+        WeChatManager.getsInstance().shareUrl(url, title, description, true);
+    }
+
+    @JavascriptInterface
+    public void shareUrl2Friend(String url, String title, String description) {
+        WeChatManager.getsInstance().shareUrl(url, title, description, false);
+    }
 }

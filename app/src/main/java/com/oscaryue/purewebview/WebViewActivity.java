@@ -84,23 +84,21 @@ public class WebViewActivity extends Activity {
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);//允许使用js
-//webview支持js脚本
-        webSettings.setJavaScriptEnabled(true);
 
-//启用数据库
+        //启用数据库
         webSettings.setDatabaseEnabled(true);
 
-//设置定位的数据库路径
+        //设置定位的数据库路径
         String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
         webSettings.setGeolocationDatabasePath(dir);
 
-//启用地理定位
+        //启用地理定位
         webSettings.setGeolocationEnabled(true);
 
-//开启DomStorage缓存
+        //开启DomStorage缓存
         webSettings.setDomStorageEnabled(true);
 
-//配置权限
+        //配置权限
         mWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onReceivedIcon(WebView view, Bitmap icon) {
@@ -134,8 +132,8 @@ public class WebViewActivity extends Activity {
     private void loadUrl() {
         if (mWebView != null) {
             if (!AccountManager.getInstance().isLoggedIn()) {
-//                mWebView.loadUrl(URL_TEST_PAGE);
-                mWebView.loadUrl(URL_LOGGED_IN);
+                mWebView.loadUrl(URL_TEST_PAGE);
+//                mWebView.loadUrl(URL_LOGGED_IN);
             } else {
 
             }
@@ -160,6 +158,9 @@ public class WebViewActivity extends Activity {
                 Toast.makeText(WebViewActivity.this, "国内不能访问google,拦截该url", Toast.LENGTH_LONG).show();
                 return true;//表示我已经处理过了
             }
+            // oscar - test
+            WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
+
             return super.shouldOverrideUrlLoading(view, url);
         }
 

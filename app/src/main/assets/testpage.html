@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html>
-   <head>
-      <meta charset="utf-8">
-      <title>Carson</title>  
-      <script>
+<head>
+    <meta charset="utf-8">
+    <title>Sharing</title>
+    <script>
 
 
-         function callAndroid(){
-            android.getDeviceID();
-         }
-		 
-		 
-         function javacalljswithargs(arg){
-	          alert(arg);
+         function share2Timeline(){
+            android.shareUrl2Timeline("http://www.zjol.com.cn", "浙江在线", "地产决策通App");
          }
 
-      </script>
-   </head>
-   <body>
+         function share2Friend(){
+            android.shareUrl2Friend("http://www.zjol.com.cn", "浙江在线", "地产决策通App");
+         }
 
-      <button type="button" id="button1" onclick="callAndroid()"></button>
-   </body>
+
+    </script>
+</head>
+<body>
+<input type="button" id="button1" value="Timeline" onclick="share2Timeline()"></input>
+<input type="button" id="button2" value="Friend" onclick="share2Friend()"></input>
+</body>
 </html>
