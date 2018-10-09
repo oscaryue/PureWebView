@@ -10,10 +10,34 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        debugSign {
+            keyAlias 'juecetong'
+            keyPassword 'juecetong123'
+            storeFile file("E:\\project\\PureWebView\\keystore\\juecetong.jks")
+            storePassword 'juecetong123'
+        }
+
+        releaseSign {
+            keyAlias 'juecetong'
+            keyPassword 'juecetong123'
+            storeFile file("E:\\project\\PureWebView\\keystore\\juecetong.jks")
+            storePassword 'juecetong123'
+        }
+    }
+
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            signingConfig signingConfigs.debugSign
+        }
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.releaseSign
         }
     }
     buildToolsVersion '26.0.2'

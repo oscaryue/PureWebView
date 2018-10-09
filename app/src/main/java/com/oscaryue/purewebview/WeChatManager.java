@@ -17,7 +17,8 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 
 public class WeChatManager {
     private static final String TAG = "WeChatManager";
-    private static final String APP_ID = "wxd930ea5d5a258f4f";
+    private static final String APP_ID = "wx9afec0b668828a8e";
+
 
     private static WeChatManager sInstance = null;
     private Context mContext = null;
