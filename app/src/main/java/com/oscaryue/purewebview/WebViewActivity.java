@@ -132,8 +132,8 @@ public class WebViewActivity extends Activity {
     private void loadUrl() {
         if (mWebView != null) {
             if (!AccountManager.getInstance().isLoggedIn()) {
-                mWebView.loadUrl(URL_TEST_PAGE);
-//                mWebView.loadUrl(URL_LOGGED_IN);
+//                mWebView.loadUrl(URL_TEST_PAGE);
+                mWebView.loadUrl(URL_LOGGED_IN);
             } else {
 
             }
@@ -153,13 +153,6 @@ public class WebViewActivity extends Activity {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            Log.i("ansen", "拦截url:" + url);
-            if (url.equals("http://www.google.com/")) {
-                Toast.makeText(WebViewActivity.this, "国内不能访问google,拦截该url", Toast.LENGTH_LONG).show();
-                return true;//表示我已经处理过了
-            }
-            // oscar - test
-            WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
 
             return super.shouldOverrideUrlLoading(view, url);
         }
@@ -221,8 +214,8 @@ public class WebViewActivity extends Activity {
                     }, 1000);
                     ToastUtil.showMessage(this.getApplicationContext(), "再次点击退出");
 
-                    // oscar - test
-                    WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
+//                    // oscar - test
+//                    WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
                 }
 
                 return true;
