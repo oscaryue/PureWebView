@@ -56,7 +56,7 @@ public class WeChatManager {
         WXMediaMessage msg = new WXMediaMessage(webpage);
         msg.title = title;
         msg.description = description;
-        Bitmap thumb = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.launcher_icon);
+        Bitmap thumb = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.sharing_icon);
         msg.thumbData = DeviceUtils.bmpToByteArray(thumb, true);
 
         SendMessageToWX.Req req = new SendMessageToWX.Req();
