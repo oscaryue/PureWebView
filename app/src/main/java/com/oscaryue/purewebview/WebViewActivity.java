@@ -1,36 +1,35 @@
 package com.oscaryue.purewebview;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
+import android.view.Window;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
-import android.webkit.WebBackForwardList;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 public class WebViewActivity extends Activity {
 
-    private static final String URL_LOGGED_IN = "http://jct.zjol.com.cn:8084"; //"http://47.98.100.193:8084";
-    private static final String URL_TEST_PAGE = "file:///android_asset/testpage.html";
+    private static final String URL_PRODUCT_LOGGED_IN = "http://jct.zjol.com.cn:8084"; //"http://47.98.100.193:8084";
+    private static final String URL_TEST_LOGGED_IN = "http://47.99.97.17:8084";
+    //    private static final String URL_LOCAL_PAGE = "file:///android_asset/testpage.html";
+    private static final String URL_LOCAL_PAGE = "file:///android_asset/amaph5.html";
 
+    private static final String URL_TARGET = URL_TEST_LOGGED_IN;//URL_LOCAL_PAGE;//
     private WebView mWebView = null;
 
     private boolean mBackKeyDown = false;
@@ -48,6 +47,12 @@ public class WebViewActivity extends Activity {
         WeChatManager.getsInstance().register(this);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LocationManager.getInstance().stop();
+    }
+
     private boolean requestPermission() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -55,7 +60,7 @@ public class WebViewActivity extends Activity {
                 != PackageManager.PERMISSION_GRANTED
                 || ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(getApplicationContext(), "没有权限,请手动开启定位权限", Toast.LENGTH_SHORT).show();
+            ToastUtil.showMessage(getApplicationContext(), "没有权限,请手动开启定位权限");
 // 申请一个（或多个）权限，并提供用于回调返回的获取码（用户定义）
             ActivityCompat.requestPermissions(WebViewActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
             return false;
@@ -78,12 +83,23 @@ public class WebViewActivity extends Activity {
         };
 
         mWebView = findViewById(R.id.webview);
+
+        LocationManager.getInstance().start(this);
+
         mWebView.addJavascriptInterface(new WebClientInterface(this, mHandler), "android");//添加js监听 这样html就能调用客户端
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setWebViewClient(webViewClient);
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);//允许使用js
+
+        // 设置UserAgent
+        String userAgent = webSettings.getUserAgentString();
+        webSettings.setUserAgentString(userAgent);
+
+        webSettings.setAppCacheEnabled(true);
+        webSettings.setAllowContentAccess(true);
+        webSettings.setPluginState(WebSettings.PluginState.ON);
 
         //启用数据库
         webSettings.setDatabaseEnabled(true);
@@ -92,11 +108,24 @@ public class WebViewActivity extends Activity {
         String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
         webSettings.setGeolocationDatabasePath(dir);
 
-        //启用地理定位
-        webSettings.setGeolocationEnabled(true);
+        // 设置是否允许定位，这里为了使用H5辅助定位，设置为false。
+        //设置为true不一定会进行H5辅助定位，设置为true时只有H5定位失败后才会进行辅助定位
+        webSettings.setGeolocationEnabled(false);
 
         //开启DomStorage缓存
         webSettings.setDomStorageEnabled(true);
+
+        webSettings.setBuiltInZoomControls(false);
+        webSettings.setSupportZoom(false);
+        webSettings.setDisplayZoomControls(false);
+        webSettings.setDomStorageEnabled(true);
+        /**
+         * LOAD_CACHE_ONLY: 不使用网络，只读取本地缓存数据
+         * LOAD_DEFAULT: （默认）根据cache-control决定是否从网络上取数据。
+         * LOAD_NO_CACHE: 不使用缓存，只从网络获取数据.
+         * LOAD_CACHE_ELSE_NETWORK，只要本地有，无论是否过期，或者no-cache，都使用缓存中的数据。
+         */
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);//不使用缓存，只从网络获取数据.
 
         //配置权限
         mWebView.setWebChromeClient(new WebChromeClient() {
@@ -107,33 +136,38 @@ public class WebViewActivity extends Activity {
             }
 
             @Override
-            public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+            public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissions.Callback callback) {
                 callback.invoke(origin, true, false);
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
-
+//                final boolean remember = false;
+//                AlertDialog.Builder builder = new AlertDialog.Builder(WebViewActivity.this);
+//                builder.setTitle("位置信息");
+//                builder.setMessage(origin + "允许获取您的地理位置信息吗？").setCancelable(true).setPositiveButton("允许",
+//                        new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog,
+//                                                int id) {
+//                                callback.invoke(origin, true, remember);
+//                            }
+//                        })
+//                        .setNegativeButton("不允许",
+//                                new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog,
+//                                                        int id) {
+//                                        callback.invoke(origin, false, remember);
+//                                    }
+//                                });
+//                AlertDialog alert = builder.create();
+//                alert.show();
             }
         });
-
-
-        webSettings.setBuiltInZoomControls(false);
-        webSettings.setSupportZoom(false);
-        webSettings.setDisplayZoomControls(false);
-        webSettings.setDomStorageEnabled(true);
-
-        /**
-         * LOAD_CACHE_ONLY: 不使用网络，只读取本地缓存数据
-         * LOAD_DEFAULT: （默认）根据cache-control决定是否从网络上取数据。
-         * LOAD_NO_CACHE: 不使用缓存，只从网络获取数据.
-         * LOAD_CACHE_ELSE_NETWORK，只要本地有，无论是否过期，或者no-cache，都使用缓存中的数据。
-         */
-//        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);//不使用缓存，只从网络获取数据.
     }
 
     private void loadUrl() {
         if (mWebView != null) {
             if (!AccountManager.getInstance().isLoggedIn()) {
-//                mWebView.loadUrl(URL_TEST_PAGE);
-                mWebView.loadUrl(URL_LOGGED_IN);
+                mWebView.loadUrl(URL_TARGET);
             } else {
 
             }
@@ -143,12 +177,12 @@ public class WebViewActivity extends Activity {
     private WebViewClient webViewClient = new WebViewClient() {
         @Override
         public void onPageFinished(WebView view, String url) {//页面加载完成
-//            progressBar.setVisibility(View.GONE);
+            super.onPageFinished(view, url);
         }
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {//页面开始加载
-//            progressBar.setVisibility(View.VISIBLE);
+            super.onPageStarted(view, url, favicon);
         }
 
         @Override
@@ -182,16 +216,30 @@ public class WebViewActivity extends Activity {
             return true;
         }
 
-        //获取网页标题
+        // 处理javascript中的confirm
+        public boolean onJsConfirm(WebView view, String url,
+                                   String message, final JsResult result) {
+            return true;
+        };
+
+        // 处理定位权限请求
         @Override
-        public void onReceivedTitle(WebView view, String title) {
-            super.onReceivedTitle(view, title);
+        public void onGeolocationPermissionsShowPrompt(String origin,
+                                                       GeolocationPermissions.Callback callback) {
+            callback.invoke(origin, true, false);
+            super.onGeolocationPermissionsShowPrompt(origin, callback);
+        }
+        @Override
+        // 设置网页加载的进度条
+        public void onProgressChanged(WebView view, int newProgress) {
+            WebViewActivity.this.getWindow().setFeatureInt(
+                    Window.FEATURE_PROGRESS, newProgress * 100);
+            super.onProgressChanged(view, newProgress);
         }
 
-        //加载进度回调
-        @Override
-        public void onProgressChanged(WebView view, int newProgress) {
-//            progressBar.setProgress(newProgress);
+        // 设置应用程序的标题title
+        public void onReceivedTitle(WebView view, String title) {
+            super.onReceivedTitle(view, title);
         }
     };
 
@@ -213,62 +261,11 @@ public class WebViewActivity extends Activity {
                         }
                     }, 1000);
                     ToastUtil.showMessage(this.getApplicationContext(), "再次点击退出");
-
-//                    // oscar - test
-//                    WeChatManager.getsInstance().shareUrl("www.zjol.com.cn", "浙江在线", "浙江在线新闻网站", false);
                 }
 
                 return true;
             }
         }
         return super.onKeyDown(keyCode, event);
-    }
-//    @Override
-//    public boolean onKeyDown(int keyCode, KeyEvent event) {
-//        if (keyCode == KeyEvent.KEYCODE_BACK) {//点击返回按钮的时候判断有没有上一页
-//            if (mBackKeyDown) {
-//                finish();
-//            } else {
-//                mBackKeyDown = true;
-//                mHandler.postDelayed(new Runnable() {
-//
-//                    @Override
-//                    public void run() {
-//                        mBackKeyDown = false;
-//                    }
-//                }, 1000);
-//                ToastUtil.showMessage(this, "再次点击退出");
-//            }
-//
-//            return true;
-//        }
-//        return super.onKeyDown(keyCode, event);
-//    }
-
-//    private boolean handleBackKey(WebView webView) {
-//        if(webView.canGoBack()) {
-//            //获取webView的浏览记录
-//            WebBackForwardList mWebBackForwardList = webView.copyBackForwardList();
-//            //这里的判断是为了让页面在有上一个页面的情况下，跳转到上一个html页面，而不是退出当前activity
-//            if (mWebBackForwardList.getCurrentIndex() > 0) {
-//                String historyUrl = mWebBackForwardList.getItemAtIndex(mWebBackForwardList.getCurrentIndex() - 1).getUrl();
-//                if (!historyUrl.equals(url)) {
-//                    webView.goBack();
-//                    return true;
-//                }
-//            }
-//        } else {
-//            return true;
-//        }
-//    }
-
-    private boolean handleBackKey(WebView webView) {
-        if (webView.canGoBack()) {
-            webView.goBack();
-            return true;
-
-        } else {
-            return false;
-        }
     }
 }
