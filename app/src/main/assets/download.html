@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>测试实例</title>
+<script>
+function download(filename, filepath) {
+	
+    if (window.plus) {//支持plus
+		alert("plus is supported");
+        //判断文件是否已经下载
+        plus.io.resolveLocalFileSystemURL(
+            '/sdcard/tmp/' + filename,
+            function (entry) {//如果已存在文件，则打开文件
+                if (entry.isFile) {
+                    hui.toast("正在打开文件...");
+                    plus.runtime.openFile('_downloads/' + filename);
+                }
+            }, function () {//如果未下载文件，则下载后打开文件
+                var dtask = plus.downloader.createDownload(filepath, { filename: '_downloads/' + filename }, function (d, status) {
+                    if (status == 200) {
+                        plus.runtime.openFile('_downloads/' + filename);
+                    }
+                    else {
+                        hui.toast("下载失败: " + status);
+                    }
+                });
+                dtask.addEventListener("statechanged", function (task, status) {
+                    if (!dtask) { return; }
+                    switch (task.state) {
+                        case 1:
+                            hui.toast("开始下载...");
+                            break;
+                        case 2:
+                            hui.toast("正在下载...");
+                            break;
+                        case 3: // 已接收到数据
+                            var progressVal = (task.downloadedSize / task.totalSize) * 100;
+                            if (hui('.progress').length > 0) {
+                                hui('.progress').html(parseInt(progressVal) + '%');
+                            }
+                            break;
+                        case 4:
+                            dtask = null;
+                            if (hui('.progress').length > 0) {
+                                hui('.progress').html('0%');
+                            }
+                            hui.toast("正在打开文件...");
+                            break;
+                    }
+                });
+                dtask.start();
+            }
+        );
+ 
+    } else {//不支持plus
+		alert("plus is not supported");
+        window.open(filepath);
+    }
+}
+
+function downloadfile(url) {
+	window.open(url);
+}
+</script>
+</head>
+ 
+<body>
+<button onclick="downloadfile('http://snip.qq.com/resources/Snip_V2.0_5771.dmg');">点击下载</button>
+</body>
+</html>

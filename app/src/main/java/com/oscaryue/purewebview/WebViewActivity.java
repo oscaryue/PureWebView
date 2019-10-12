@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -14,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
+import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
@@ -27,7 +30,7 @@ public class WebViewActivity extends Activity {
     private static final String URL_PRODUCT_LOGGED_IN = "http://jct.zjol.com.cn:8084"; //"http://47.98.100.193:8084";
     private static final String URL_TEST_LOGGED_IN = "http://47.99.97.17:8084";
     //    private static final String URL_LOCAL_PAGE = "file:///android_asset/testpage.html";
-    private static final String URL_LOCAL_PAGE = "file:///android_asset/amaph5.html";
+    private static final String URL_LOCAL_PAGE = "file:///android_asset/download.html";
 
     private static final String URL_TARGET = URL_TEST_LOGGED_IN;//URL_LOCAL_PAGE;//
     private WebView mWebView = null;
@@ -86,6 +89,14 @@ public class WebViewActivity extends Activity {
         mWebView.addJavascriptInterface(new WebClientInterface(this, mHandler), "android");//添加js监听 这样html就能调用客户端
         mWebView.setWebChromeClient(webChromeClient);
         mWebView.setWebViewClient(webViewClient);
+        mWebView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                if (url != null && url.length() > 0) {
+                    downloadByBrowser(url);
+                }
+            }
+        });
 
         WebSettings webSettings = mWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);//允许使用js
@@ -136,27 +147,6 @@ public class WebViewActivity extends Activity {
             public void onGeolocationPermissionsShowPrompt(final String origin, final GeolocationPermissions.Callback callback) {
                 callback.invoke(origin, true, false);
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
-//                final boolean remember = false;
-//                AlertDialog.Builder builder = new AlertDialog.Builder(WebViewActivity.this);
-//                builder.setTitle("位置信息");
-//                builder.setMessage(origin + "允许获取您的地理位置信息吗？").setCancelable(true).setPositiveButton("允许",
-//                        new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog,
-//                                                int id) {
-//                                callback.invoke(origin, true, remember);
-//                            }
-//                        })
-//                        .setNegativeButton("不允许",
-//                                new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialog,
-//                                                        int id) {
-//                                        callback.invoke(origin, false, remember);
-//                                    }
-//                                });
-//                AlertDialog alert = builder.create();
-//                alert.show();
             }
         });
     }
@@ -264,5 +254,12 @@ public class WebViewActivity extends Activity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private void downloadByBrowser(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
     }
 }
