@@ -50,7 +50,6 @@ public class WebViewActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LocationManager.getInstance().stop();
     }
 
     private boolean requestPermission() {
@@ -83,8 +82,6 @@ public class WebViewActivity extends Activity {
         };
 
         mWebView = findViewById(R.id.webview);
-
-        LocationManager.getInstance().start(this);
 
         mWebView.addJavascriptInterface(new WebClientInterface(this, mHandler), "android");//添加js监听 这样html就能调用客户端
         mWebView.setWebChromeClient(webChromeClient);
