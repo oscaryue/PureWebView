@@ -257,9 +257,15 @@ public class WebViewActivity extends Activity {
     }
 
     private void downloadByBrowser(String url) {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        final Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(url));
-        startActivity(intent);
+
+        if (this != null && intent.resolveActivity(this.getPackageManager()) != null) {
+            this.startActivity(Intent.createChooser(intent, "请选择下载方式"));
+        } else {
+            ToastUtil.showMessage(this.getApplicationContext(), "请安装浏览器");
+        }
+
     }
 }
