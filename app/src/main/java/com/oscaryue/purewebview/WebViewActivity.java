@@ -4,11 +4,11 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,12 +16,15 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.DownloadListener;
 import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
+import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -37,6 +40,8 @@ public class WebViewActivity extends Activity {
 
     private boolean mBackKeyDown = false;
     private Handler mHandler = null;
+
+    public static final String WEBVIEW_CACHE_CLEARED = "com.oscaryue.purewebview.cachedcleared";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +77,8 @@ public class WebViewActivity extends Activity {
     }
 
     private void initUI() {
+        SettingUtils.getInstance().init(getApplicationContext());
+
         mHandler = new Handler() {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
@@ -152,6 +159,9 @@ public class WebViewActivity extends Activity {
                 super.onGeolocationPermissionsShowPrompt(origin, callback);
             }
         });
+
+        // 清空缓存
+        clearCacheIfNecessary();
     }
 
     private void loadUrl() {
@@ -270,5 +280,33 @@ public class WebViewActivity extends Activity {
             ToastUtil.showMessage(this.getApplicationContext(), "请安装浏览器");
         }
 
+    }
+
+    private void clearCacheIfNecessary() {
+        boolean cleared = SettingUtils.getInstance().getBoolean(WEBVIEW_CACHE_CLEARED, false);
+        if (!cleared) {
+            clearWebViewCache();
+            SettingUtils.getInstance().setSetting(WEBVIEW_CACHE_CLEARED, true);
+        }
+    }
+
+    private void clearWebViewCache() {
+        CookieSyncManager.createInstance(getApplicationContext());
+        final CookieManager cookieManager = CookieManager.getInstance();
+
+        WebViewActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    cookieManager.removeSessionCookies(null);
+                    cookieManager.removeAllCookie();
+                    cookieManager.flush();
+                } else {
+                    cookieManager.removeAllCookie();
+                    CookieSyncManager.getInstance().sync();
+                }
+                WebStorage.getInstance().deleteAllData();
+            }
+        });
     }
 }
