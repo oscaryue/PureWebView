@@ -30,12 +30,12 @@ import android.webkit.WebViewClient;
 
 public class WebViewActivity extends Activity {
 
-    private static final String URL_PRODUCT_LOGGED_IN = "http://jct.zjol.com.cn:8084"; //"http://47.98.100.193:8084";
+    private static final String URL_PRODUCT_LOGGED_IN = "http://jct.zjol.com.cn:8090";//"http://jct.zjol.com.cn:8084"; //"http://47.98.100.193:8084";
     private static final String URL_TEST_LOGGED_IN = "http://47.99.97.17:8084";
     //    private static final String URL_LOCAL_PAGE = "file:///android_asset/testpage.html";
     private static final String URL_LOCAL_PAGE = "file:///android_asset/download.html";
 
-    private static final String URL_TARGET = URL_TEST_LOGGED_IN;//URL_LOCAL_PAGE;//
+    private static final String URL_TARGET = URL_PRODUCT_LOGGED_IN;//URL_TEST_LOGGED_IN;//URL_LOCAL_PAGE;//
     private WebView mWebView = null;
 
     private boolean mBackKeyDown = false;
